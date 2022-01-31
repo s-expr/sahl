@@ -1,0 +1,8 @@
+
+(executable
+ (name sahl)
+ (libraries
+   batteries
+   sparse
+   interp
+   base))
