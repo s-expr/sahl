@@ -59,10 +59,54 @@ let rec subst (to_subst : Exp.t) (ifer : Ifer.t) (e : Exp.t) =
           if shad_vars || Ifer.eq cname ifer then body else substc body))
        efflist)
 
-let rec eval (e : Exp.t) : Val.t =
+let prim2_num : Exp.prim2 -> int -> int -> int = function
+  | OpAdd -> ( + )
+  | OpSub -> ( - )
+  | OpMult -> ( * )
+  | _ -> raise IllTyped
+
+let prim2_bool : Exp.prim2 -> int -> int -> bool = function
+  | OpGt -> ( > )
+  | OpLt -> ( < )
+  | OpEq -> ( = )
+  | _ -> raise IllTyped
+
+let rec eval_to_num (e : Exp.t) : int = 
+  match e with
+  | NumLit n -> n
+  | Prim1 (OpNeg, e) ->
+     let n = eval_to_num e in
+     -n
+  | Prim2 (e1, ((OpAdd | OpSub | OpMult) as op), e2) ->
+     let n1 = eval_to_num e1 in
+     let n2 = eval_to_num e2 in
+     let op = prim2_num op in
+     op n1 n2
+  | e ->
+     (match eval e with
+      | Num n -> n
+      | _ -> raise IllTyped)
+
+and eval_to_bool (e  : Exp.t) : bool =
+  match e with 
+  | BoolLit b -> b
+  | Prim1 (OpNot, e) ->
+     let b = eval_to_bool e in
+     not b
+  | Prim2 (e1, ((OpGt | OpLt | OpEq) as op), e2)  ->
+     let n1 = eval_to_num e1 in
+     let n2 = eval_to_num e2 in
+     let op = prim2_bool op in
+     op n1 n2
+  | e ->
+     (match eval e with
+      | Bool b -> b
+      | _ -> raise IllTyped)
+      
+and eval (e : Exp.t) : Val.t =
   match e with
   | BoolLit b -> Bool b
   | NumLit i -> Num i
   | Unit -> Triv
   | Var ->  raise IllTyped
-  | 
+  | Prim1 -> 
