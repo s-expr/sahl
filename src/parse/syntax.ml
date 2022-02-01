@@ -18,7 +18,8 @@ module Exp = struct
     | OpGt
     | OpAp
 
-  type effect =  (Ifer.t * Ifer.t list * Ifer.t * t)
+  type effectsig =  (Ifer.t * Ifer.t list * Ifer.t * t)
+  and effect =  (Ifer.t * t list * Ifer.t * t)
   and t =
     | Unit 
     | BoolLit of bool
@@ -30,8 +31,8 @@ module Exp = struct
     | Fun of Ifer.t * t
     | DoIn of Ifer.t * t * t
     | With of t * t
-    | EffInv of Ifer.t * t list * Ifer.t * t
-    | Handler of effect list
+    | EffInv of effect 
+    | Handler of effectsig list
 end
                 
 
