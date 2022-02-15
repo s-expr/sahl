@@ -23,6 +23,7 @@ end
 
 
 
+
 let rec subst (to_subst : Exp.t) (ifer : Ifer.t) (e : Exp.t) =
   (* curry the recursive call for use in multiple cases *)
   let substc = (subst to_subst ifer) in 
@@ -60,6 +61,10 @@ let rec subst (to_subst : Exp.t) (ifer : Ifer.t) (e : Exp.t) =
          (effname, varlist, cname,
           if shad_vars || Ifer.eq cname ifer then body else substc body))
        efflist)
+
+let argsubst (args : Exp.t list) (params: Ifer.t list) (e : Exp.t) =
+
+
 
 let get_handler (effects : Exp.effectsig list) (name : Ifer.t) : Exp.effectsig option =
   List.find_opt
@@ -200,13 +205,16 @@ and eval (e : Exp.t) : Val.t =
       match body_v with
       | EffInv(name, args, ifer, cont) -> (
         match get_handler effects name with
+        (* handled effects*)
         | Some effecth ->
-           let (_, args, ifer, body) in
-           eval (subst body ifer With(Val.to_expr handler_v, cont))
+           let (_, params, ifer, body) = effecth in
+           let body = argsubst args params body in 
+           eval (subst body ifer (With (Val.to_expr handler_v, cont)))
            
+        (* unhandled effects*)
         | None -> 
            EffInv(name, args, ifer,
-                  With (Val.to_expr handler_v, body))
+                  With (Val.to_expr handler_v, cont))
       )
       (* no effects*) 
       | e -> body_v
